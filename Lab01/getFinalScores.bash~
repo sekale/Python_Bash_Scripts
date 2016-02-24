@@ -1,0 +1,49 @@
+#! /bin/bash
+#
+#$Author$
+#$Date$
+#$HeadURL$
+#$Revision$
+
+NumParams=$#
+ParamValues=$@
+
+if ((NumParams != 1))
+	then
+		echo "Usage: ./getFinalScores.bash <filename>"
+		exit 1
+	fi
+
+if [[ ! -e $1 ]]
+	then
+		echo "Error reading input file: $1"
+		exit 2
+	fi
+
+#echo $1
+
+variable=$(echo "$1" | cut -d '.' -f1)
+if [[ ! -e $variable.out ]]
+then
+touch $variable.out
+
+elif [[ -e $variable.out ]]	
+then
+	echo "Output file $variable.out already exists."
+	exit 3
+fi
+
+finalscore=0
+while IFS=, read score1 score2 score3 score4 score5
+do
+	#echo $score2 
+	(( finalscore=((score2*15)/100) + ((score3*30)/100) + ((score4*30)/100) + ((score5*25)/100) ))
+
+	echo -n $score1 >> $variable.out
+	echo " $finalscore" >> $variable.out
+	#echo " $finalscore" > $variable.out
+done < "$1"
+
+
+
+exit 0

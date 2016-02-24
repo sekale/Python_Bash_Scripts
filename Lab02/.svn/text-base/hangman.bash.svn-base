@@ -1,0 +1,170 @@
+#! /bin/bash
+#
+#$Author$
+#$Date$
+#$HeadURL$
+#$Revision$
+
+word1=(b a n a n a)
+word2=(p a r s i m o n i o u s)
+word3=(s e s q u i p e d a l i a n)
+
+((num=(($RANDOM%3 + 1))))
+
+#echo $num
+word4=(. . . . . .)
+word5=(. . . . . . . . . . . .)
+word6=(. . . . . . . . . . . . . .)
+val_correct=0
+flag_word_correct=0
+value=0
+if(($num == 1))
+  then
+val_correct=0
+flag_word_correct=0
+value=0
+	(( length_word=${#word1[*]} ))
+	echo "Your word is $length_word letters long"
+#	echo ${word1:$3:1}
+
+	while (( flag_word_correct != 1 ))
+	do
+		echo "Word is: ${word4[*]}"
+		echo -n "Make a guess: "
+		read input
+		echo -n "$input"
+		for i in $(seq 0 $length_word)
+		do
+			if [[ $input == ${word1[$i]} ]]
+			then
+				word4[$i]=$input
+				val_correct=1
+			fi
+
+			if [[ ${word1[$i]} == ${word4[$i]} ]]
+			then
+				(( value=$value+1 ))
+			fi
+
+		done
+
+		if (( $val_correct == 1 )) 
+		then
+			echo "Good going!"
+
+		else
+			echo "Sorry, try again"
+		fi
+
+		val_correct=0
+		
+		if(( $value == $length_word ))
+		then
+			flag_word_correct=1
+		fi
+
+	done
+
+echo "Congratulations! You guessed the word: $word1"
+
+elif(($num== 2))
+  then
+val_correct=0
+flag_word_correct=0
+value=0
+	(( length_word=${#word2[*]} ))
+	echo "Your word is $length_word letters long"
+#	echo ${word1:$3:1}
+
+	while (( flag_word_correct != 1 ))
+	do
+		echo "Word is: ${word5[*]}"
+		echo -n "Make a guess: "
+		read input
+		echo -n "$input"
+		for i in $(seq 0 $length_word)
+		do
+			if [[ $input == ${word2[$i]} ]]
+			then
+				word4[$i]=$input
+				val_correct=1
+			fi
+
+			if [[ ${word2[$i]} == ${word5[$i]} ]]
+			then
+				(( value=$value+1 ))
+			fi
+
+		done
+
+		if (( $val_correct == 1 )) 
+		then
+			echo "Good going!"
+
+		else
+			echo "Sorry, try again"
+		fi
+
+		val_correct=0
+		
+		if(( $value == $length_word ))
+		then
+			flag_word_correct=1
+		fi
+
+	done
+
+echo "Congratulations! You guessed the word: $word2"
+
+elif(($num== 3))
+  then
+val_correct=0
+flag_word_correct=0
+value=0
+	(( length_word=${#word3[*]} ))
+	echo "Your word is $length_word letters long"
+#	echo ${word1:$3:1}
+
+	while (( flag_word_correct != 1 ))
+	do
+		echo "Word is: ${word6[*]}"
+		echo -n "Make a guess: "
+		read input
+		echo -n "$input"
+		for i in $(seq 0 $length_word)
+		do
+			if [[ $input == ${word3[$i]} ]]
+			then
+				word6[$i]=$input
+				val_correct=1
+			fi
+
+			if [[ ${word3[$i]} == ${word6[$i]} ]]
+			then
+				(( value=$value+1 ))
+			fi
+
+		done
+
+		if (( $val_correct == 1 )) 
+		then
+			echo "Good going!"
+
+		else
+			echo "Sorry, try again"
+		fi
+
+		val_correct=0
+		
+		if(( $value == $length_word ))
+		then
+			flag_word_correct=1
+		fi
+
+	done
+
+echo "Congratulations! You guessed the word: $word2"
+fi
+
+	
+exit 0

@@ -1,0 +1,89 @@
+#! /bin/bash
+#
+#$Author: ee364a09 $
+#$Date: 2016-01-25 13:43:10 -0500 (Mon, 25 Jan 2016) $
+#$HeadURL: svn+ssh://ece364sv@ecegrid-thin1/home/ecegrid/a/ece364sv/svn/S16/students/ee364a09/Lab01/getCourseStats.bash $
+#$Revision: 86722 $
+
+NumParams=$#
+ParamValues=$@
+
+val1="ece364"
+val2="ece337"
+val3="ece468"
+
+if (( NumParams != 1 ))
+	then
+		echo "Usage: ./getCourseStats.bash <filename>"
+		exit 1
+	fi
+
+if [[ $1 != "ece364" && $1 != "ece337" && $1 != "ece468" ]]
+	then
+		echo "course $1 is not a valid option"
+		exit 5
+	fi
+
+variable=$(ls gradebooks/$1*.txt)
+#echo $variable
+
+for item in ${variable[*]}
+do
+	#echo $item
+	./getFinalScores.bash $item
+done
+
+var=$?
+
+if (( var != 0 ))
+then
+	echo "Error while running getFinalScores.bash"
+	exit 3
+fi
+
+variable2=$(ls gradebooks/$1*.out)
+count_val=1
+sum=0
+highest_score=0
+
+for item in ${variable2[*]}
+do
+
+	while IFS=, read score1 score2
+	do
+
+	if (($score2 > $highest_score))
+	then
+			highest_score=$score2
+			name=$score1
+	fi
+	((sum=$sum+$score2))
+	((count_val=$count_val+1))
+	done < "$item"
+done
+average=0
+((count_val=$count_val-1))
+((average=$sum/count_val))
+
+
+echo "Total Students: $count_val"
+echo "Average score: $average"
+echo "$name had the highest score of $highest_score"
+
+
+
+
+
+
+#./getFinalScores.bash gradebooks/$1_section1.txt
+#var1=$?
+#./getFinalScores.bash gradebooks/$1_section2.txt
+#var2=$?
+
+#if (( $var1 != 0 || $var2 != 0 ))
+#then
+	#echo "Error while running getFinalScores.bash"
+	#exit 3
+#fi
+
+exit 0 

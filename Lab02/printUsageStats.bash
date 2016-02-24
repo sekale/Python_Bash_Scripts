@@ -1,0 +1,176 @@
+#! /bin/bash
+#
+#$Author: ee364a09 $
+#$Date: 2016-01-26 15:07:25 -0500 (Tue, 26 Jan 2016) $
+#$HeadURL: svn+ssh://ece364sv@ecegrid-thin1/home/ecegrid/a/ece364sv/svn/S16/students/ee364a09/Lab02/printUsageStats.bash $
+#$Revision: 86911 $
+
+Params=$@
+NumParams=$#
+
+if (( NumParams != 1 ))
+then
+	echo "Usage: run.bash quick_sim.c <filename.txt>"
+	exit 1
+fi
+
+if [[ ! -e $1 ]]
+then
+    echo "Error: $1 doesn't exist"
+    exit 2
+fi
+exec 4< $1 #file $1 opened for reading
+read line <&4 
+
+n=5
+
+variable=$(echo $line | cut -d '-' -f2)
+variable1=$(echo $variable | cut -d ' ' -f1)
+
+echo "Parsing File $1. Timestamp :$variable1"
+
+	echo "Your choices are:"
+	echo "1) Active user IDs"
+	echo "2) N Highest CPU usages"
+	echo "3) N Highest mem usages" 
+	echo "4) Top 3 longest running processes"
+	echo "5) All processes by a specific user"
+	echo "6) Exit"
+	count_val3=0
+
+	if [[ ! -e outfile.txt ]]
+	then
+	touch outfile.txt
+	chmod +X outfile.txt
+	fi
+
+	tail -n +8 $1 > outfile.txt
+
+	while true
+	do
+		echo -n "Please enter your choice: " 
+		read input
+
+			if (( $input == 1))
+			then 
+				active_users=$(echo $variable | cut -d ',' -f3)
+				echo "Total number of active user IDs: $active_users"
+			elif (( $input == 2 ))
+			then
+				#max cpu usage
+				echo -n "Enter a value for N: " 
+				read n
+				count_val=0
+				count_val1=0
+				while read line
+				do
+					if (( $count_val >=7 ))	
+					then
+						if (( $count_val1 < $n))
+						then
+							variable2=$(echo $line | cut -d ' ' -f2)
+							echo $variable2
+						else
+						break
+						fi
+						((count_val1=$count_val1 + 1))
+					fi
+					((count_val=$count_val + 1))
+				done < $1
+				#
+			elif (( $input == 3))
+				then
+					if [[ ! -e logfile3.txt ]]
+					then
+					touch logfile3.txt
+					chmod +x logfile3.txt
+					fi
+
+					sort -n -r -k 10,10 outfile.txt > logfile3.txt
+				echo -n "Enter a value for N: " 
+				read n
+				count_val1=0
+				while read line
+				do
+						if (( $count_val1 < $n))
+						then
+							variable2=$(echo $line | cut -d ' ' -f2)
+							variable3=$(echo $line | cut -d ' ' -f10)
+							echo "User $variable2 is utilizing mem resources at $variable3%"
+						else
+						break
+						fi
+						((count_val1=$count_val1 + 1))
+
+				done < logfile3.txt
+
+			elif (( $input == 4 )) 
+				then
+					if [[ ! -e logfile4.txt ]]
+					then
+					touch logfile4.txt
+					chmod +x logfile4.txt
+					fi
+
+					sort -n -r -k 11,11 outfile.txt > logfile4.txt	
+
+				count_val1=0
+				while read line
+				do
+						if (( $count_val1 < 3))
+						then
+							variable2=$(echo $line | cut -d ' ' -f1)
+							variable3=$(echo $line | cut -d ' ' -f12)
+							echo "PID: $variable2, cmd: $variable3"
+						else
+						break
+						fi
+						((count_val1=$count_val1 + 1))
+
+				done < logfile4.txt			
+
+			elif (( $input == 5 ))
+			then
+
+					if [[ ! -e outfile4.txt ]]
+					then
+					touch outfile4.txt
+					chmod +x outfile4.txt
+					fi
+				echo "Please enter a username: "
+				read name
+				cat outfile.txt | grep "$name" >outfile4.txt
+				while read line
+				do
+
+							variable2=$(echo $line | cut -d ' ' -f10)
+							variable3=$(echo $line | cut -d ' ' -f12)
+							echo "$variable2 $variable3"
+
+						((count_val1=$count_val1 + 1))
+
+				done < outfile4.txt	
+
+				#(($?= grep "$name"))
+				#if (( $? != 0 ))
+				#	then
+				#		echo "No match found"
+				#	fi
+
+
+			elif (( $input == 6 ))
+			then
+				exit 0
+			fi
+	done
+
+
+
+
+
+#active users
+
+
+
+
+exit 0

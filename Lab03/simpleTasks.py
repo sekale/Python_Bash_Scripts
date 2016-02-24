@@ -1,0 +1,151 @@
+#! /usr/bin/envpython3.4
+#
+#$Author: ee364a09 $
+#$Date: 2016-02-05 19:42:07 -0500 (Fri, 05 Feb 2016) $
+#$HeadURL: svn+ssh://ece364sv@ecegrid-thin1/home/ecegrid/a/ece364sv/svn/S16/students/ee364a09/Lab03/simpleTasks.py $
+#$Revision: 87737 $
+
+
+def getPairwiseDifference(vec):
+	if type(vec) != list:
+		return None
+	length_vector = len(vec)
+
+	if(length_vector == 0):
+		return None
+
+	list_of_vals = []
+
+	for counter in range(length_vector):
+		if counter < (len(vec) - 1):
+			difference = vec[counter + 1] - vec[counter]
+			list_of_vals.append(difference)
+	return list_of_vals
+
+def flatten(l):
+	if type(l) != list:
+		return None
+
+	for value in l:
+		if type(value) != list:
+			return None
+
+	list_values = []
+
+	for value in l:
+		for list_of_list in value:
+			list_values.append(list_of_list)
+
+	return list_values
+
+def getCreditCard(s):
+	length_string = len(s)
+	if(length_string == 0):
+		return None
+	card_number = []
+	for value in s:
+		if(ord(value) >= 48 and ord(value) <= 57):
+			card_number.append(int(value))
+	return card_number
+
+def rectifySignal(signal):
+	length_signals = len(signal)
+	if type(signal) != list:
+		return None
+	if length_signals == 0:
+		return None
+	updated_signals =[]
+
+	for value in signal:
+		if value <= 0:
+			updated_signals.append(0)
+		else:
+			updated_signals.append(value)
+
+	return updated_signals
+
+def decodeNumbers(numList):
+	if type(numList) != list:
+		return None
+	for value in numList:
+		if type(value) != int:
+			return  None
+	l = ""
+
+	for value in numList:
+		if type(value) == int:
+				l += chr(value)
+		
+		else:
+			return None
+
+	return l
+
+
+
+def partition(l,n):
+	if type(l) != list:
+		return None
+	length_list = len(l)
+	if length_list == 0:
+		return None
+
+	list_vector = []
+	temp_list_vector = []
+	num = 0
+	for value in l:
+		#num = 0
+		if num < n:
+			temp_list_vector.append(value)
+			num = num + 1
+		else:
+			list_vector.append(temp_list_vector)
+			temp_list_vector = []
+			num = 0
+			temp_list_vector.append(value)
+			num = num + 1
+
+	list_vector.append(temp_list_vector) ##appends if a list is less than n at the end
+	return list_vector
+
+def floatRange(a, b, s):
+	if not a < b:
+		return None
+	make_list_float = []
+	current_number = a
+	current_number = round(current_number, 1)
+	while current_number <= b:
+		make_list_float.append(current_number)
+		current_number = current_number + s
+		current_number = round(current_number, 1)
+		
+	return make_list_float	
+
+def getLongestWord(sentence):
+    if type(sentence) != str:
+        return None
+    new_sentence = sentence
+    new_sentence = sentence.strip()
+    counter_spaces = 0
+    for eachvalue in new_sentence:
+        if eachvalue == ' ':
+            counter_spaces = counter_spaces + 1
+    if counter_spaces == 0:
+        return None
+
+    list_words = new_sentence.split()
+
+    max_val = 0
+    for each_word in list_words:
+        if len(each_word) > max_val:
+            length_word = len(each_word)
+            new_max_val = length_word
+            max_val = new_max_val
+            longest_word = each_word
+
+    return longest_word
+
+
+
+if __name__ == '__main__':
+	pass
