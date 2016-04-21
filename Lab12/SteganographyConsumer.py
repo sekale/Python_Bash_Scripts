@@ -1,0 +1,313 @@
+#! /usr/bin/env python3.4
+#
+#$Author: ee364a09 $
+#$Date: 2016-04-18 22:00:30 -0400 (Mon, 18 Apr 2016) $
+
+from SteganographyGUI import *
+from os.path import splitext
+import sys
+from functools import partial
+from PySide.QtCore import *
+from PySide.QtGui import *
+from Steganography import *
+import scipy.misc
+
+class SteganographyConsumer(QMainWindow, Ui_MainWindow):
+
+    def __init__(self, parent = None):
+
+
+        super(SteganographyConsumer, self).__init__(parent)
+        self.setupUi(self)
+        self.slideCompression.setDisabled(True)
+        self.chkApplyCompression.stateChanged.connect(lambda :self.apply_compress())
+
+        self.slideCompression.valueChanged.connect(lambda :self.change_value())
+        self.override_flag = 0
+        self.chkOverride.stateChanged.connect(lambda : self.override_flag_set()) #sets self.override_flag value
+
+        self.btnSave.clicked.connect(lambda : self.showDialog())
+
+        self.btnExtract.setDisabled(True)
+        self.btnClean.setDisabled(True)
+        self.lblCarrierEmpty.setText('>>>>Carrier Empty<<<<')
+
+        self.btnExtract.clicked.connect(lambda: self.extract_image())
+        self.btnClean.clicked.connect(lambda : self.clean_current_payload())
+
+
+
+
+        #FLAGS FOR CHECKING WHETHER EMBED BUTTON SHOULD BE ENABLED BELOW THIS
+        self.payload_exists = 0
+        self.carrier_exists = 0
+        self.payload_found   = 0
+        #FLAGS FOR CHECKING WHETHER EMBED BUTTON SHOULD BE ENABLED ABOVE THIS
+
+        views = [self.viewPayload1, self.viewCarrier1, self.viewCarrier2]
+
+        accept = lambda e: e.accept()
+
+        for view in views:
+            # We need to accept the drag event to be able to accept the drop.
+            view.dragEnterEvent = accept
+            view.dragMoveEvent = accept
+            view.dragLeaveEvent = accept
+
+            # Assign an event handler (a method,) to be invoked when a drop is performed.
+            view.dropEvent = partial(self.processDrop, view)
+
+
+    def processDrop(self, view, e):
+        """
+        Process a drop event when it occurs on the views.
+        """
+        mime = e.mimeData()
+
+        # Guard against types of drops that are not pertinent to this app.
+        if not mime.hasUrls():
+            return
+
+        # Obtain the file path using the OS format.
+        filePath = mime.urls()[0].toLocalFile()
+        _, ext = splitext(filePath)
+
+        if not ext == ".png":
+            return
+
+        #print(filePath)
+
+        scene = QGraphicsScene()
+        image_value = QPixmap( filePath )
+        current_image = image_value.scaled( 350, 272, Qt.KeepAspectRatio )
+        scene.addPixmap( current_image )
+        view.setScene( scene )
+        view.show()
+
+        if(view == self.viewPayload1):
+            self.nd_array_value = scipy.misc.imread(filePath)
+            self.object = Payload(self.nd_array_value)
+            self.payload_size = len(self.object.make_xml())
+            #print(self.payload_size)
+
+            self.txtPayloadSize.setText(str(self.payload_size))
+            self.payload_exists = 1
+            self.slideCompression.setValue(0)
+            self.chkApplyCompression.setChecked(0)
+            self.btn_save()
+
+        if(view == self.viewCarrier1):
+            self.nd_array_value_carrier = scipy.misc.imread(filePath)
+
+            self.carrier_size = int(self.nd_array_value_carrier.size / 8)
+
+
+            self.txtCarrierSize.setText(str(self.carrier_size))
+            self.chkOverride.setEnabled(True)
+            self.carrier_exists = 1
+            self.carrierprocess()
+
+        if(view == self.viewCarrier2):
+            self.nd_array_value_carrier2 = scipy.misc.imread(filePath)
+            self.carrier_tab2 = Carrier(self.nd_array_value_carrier2)
+            self.lblCarrierEmpty.setText('')
+            self.carrier_tab2_filePath = filePath
+
+            #Useless 3 lines of code followed by not displaying the image
+            scene = QGraphicsScene()
+            scene.addPixmap( None )
+            self.viewPayload2.setScene( None )
+            self.viewPayload2.show()
+
+            if(self.carrier_tab2.payloadExists() == True):
+                self.btnExtract.setEnabled(True)
+                self.btnClean.setEnabled(True)
+
+            else:
+                self.lblCarrierEmpty.setText('>>>>Carrier Empty<<<<')
+                self.btnExtract.setDisabled(True)
+                self.btnClean.setDisabled(True)
+
+
+            self.carrier_tab2_exists = 1
+
+    def clean_current_payload(self):
+        self.clean_carrier_nd_array = self.carrier_tab2.clean() #clean nd array
+        self.lblCarrierEmpty.setText('>>>>Carrier Empty<<<<')
+        scipy.misc.imsave(self.carrier_tab2_filePath, self.clean_carrier_nd_array)
+
+        #print('Reached here after im-save in clean current payload')
+
+        #Useless 3 lines of code followed by not displaying the image
+        scene = QGraphicsScene()
+        scene.addPixmap( None )
+        self.viewPayload2.setScene( None )
+        self.viewPayload2.show()
+
+        self.btnClean.setDisabled(True)
+        self.btnExtract.setDisabled(True)
+
+
+
+    def carrierprocess(self):
+        flag = 0
+        self.carrier_object = Carrier(self.nd_array_value_carrier)
+        if(self.carrier_object.payloadExists() == True):
+            self.lblPayloadFound.setText('>>>>Payload Found<<<<')
+            self.payload_found = 1
+            self.btn_save()
+
+        else:
+            self.lblPayloadFound.setText('')
+            self.payload_found = 0
+            self.chkOverride.setDisabled(True)
+            self.btn_save()
+
+        #print(self.carrier_exists)
+        #print(self.payload_exists)
+        #print(self.payload_found)
+
+        return
+
+
+    def apply_compress(self):
+
+        if(self.chkApplyCompression.isChecked() == True):
+            self.slideCompression.setEnabled(True)
+            self.txtCompression.setEnabled(True)
+            self.lblLevel.setEnabled(True)
+
+            #below logic disables btnSave if value of Payload Size goes lesser than Carrier Size
+            flag = 0
+            if(self.carrier_exists == 1):
+                if(self.payload_size <= self.carrier_size):
+                    flag = 1
+                else:
+                    flag = 0
+
+            if(self.carrier_exists == 1 and self.payload_exists == 1 and flag == 1):
+                self.btnSave.setEnabled(True)
+            else:
+                self.btnSave.setEnabled(False)
+            #above logic disables btnSave if value of Payload Size goes lesser than Carrier Size
+
+            self.renew_object()
+
+
+        elif(self.chkApplyCompression.isChecked() == False):
+            self.slideCompression.setDisabled(True)
+            self.txtCompression.setDisabled(True)
+            self.lblLevel.setDisabled(True)
+
+            self.object = Payload(self.nd_array_value, -1, None)
+            self.payload_size = len(self.object.make_xml())
+            self.txtPayloadSize.setText(str(self.payload_size))
+
+
+            #below logic disables btnSave if value of Payload Size goes lesser than Carrier Size
+            flag = 0
+            if(self.carrier_exists == 1):
+                if(self.payload_size <= self.carrier_size):
+                    flag = 1
+                else:
+                    flag = 0
+
+            if(self.carrier_exists == 1 and self.payload_exists == 1 and flag == 1):
+                self.btnSave.setEnabled(True)
+            else:
+                self.btnSave.setEnabled(False)
+            #above logic disables btnSave if value of Payload Size goes lesser than Carrier Size
+
+    def change_value(self):
+        self.compression_value = str(self.slideCompression.value())
+        self.txtCompression.setText(self.compression_value)
+
+        self.renew_object()
+
+    def renew_object(self):
+        flag = 0
+        self.object = Payload(self.nd_array_value, self.slideCompression.value(), None)
+        self.payload_size = len(self.object.make_xml())
+        self.txtPayloadSize.setText(str(self.payload_size))
+
+        #print("Came Here")
+        #print(self.payload_size)
+        #print(self.carrier_size)
+        if(self.carrier_exists == 1):
+            if(self.payload_size <= self.carrier_size):
+                flag = 1
+            else:
+                flag = 0
+
+        if(self.carrier_exists == 1 and self.payload_exists == 1 and flag == 1):
+            self.btnSave.setEnabled(True)
+        else:
+            self.btnSave.setEnabled(False)
+
+    def override_flag_set(self):
+        flag = 0 # one of the conditions to determine whether embed button should be enabled or not
+
+        if(self.chkOverride.isChecked() == True):
+            self.override_flag = 1
+            #print(self.override_flag)
+        else:
+            self.override_flag = 0
+            #print(self.override_flag)
+
+        self.btn_save()
+
+    def showDialog(self):
+        embed_carrier = Carrier(img = self.nd_array_value_carrier)
+        embedded_carrier = embed_carrier.embedPayload(payload=Payload(img = self.nd_array_value, compressionLevel=self.slideCompression.value()), override=self.chkOverride.isChecked())
+        #print('embedded the carrier')
+        file_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File', '/home/yara/ee364/ee364a09/Lab11/',selectedFilter = '*.png')
+        #print(file_name[0])
+        scipy.misc.imsave(file_name[0] + '.png', embedded_carrier)
+
+
+    def btn_save(self):
+        flag = 0
+        if (self.payload_found == 1 and self.override_flag == 1) or (self.payload_found == 0):
+            if(self.payload_exists == 1 and self.carrier_exists == 1):
+                if(self.carrier_size >= self.payload_size):
+                    flag = 1
+                    flag_val = 'flag : {0}'.format(flag)
+
+                    #print(flag_val)
+                else:
+                    flag = 0
+                    flag_val = 'flag : {0}'.format(flag)
+
+                    #print(flag_val)
+
+        if(self.carrier_exists == 1 and self.payload_exists == 1 and flag == 1):
+            self.btnSave.setEnabled(True)
+        else:
+            self.btnSave.setEnabled(False)
+
+
+    def extract_image(self):
+        #print('Reached here atleast')
+        self.extracted_image = self.carrier_tab2.extractPayload()
+        #print('Image Extracted')
+
+        self.extracted_image = self.extracted_image.reconstruct_image()
+
+        scipy.misc.imsave('Extracted_Image.png', self.extracted_image)
+
+        scene = QGraphicsScene()
+        image_value = QPixmap('/home/yara/ee364/ee364a09/Lab11/Extracted_Image.png')
+        current_image = image_value.scaled( 350, 272, Qt.KeepAspectRatio )
+        scene.addPixmap( current_image )
+        self.viewPayload2.setScene( scene )
+        self.viewPayload2.show()
+
+        return
+
+
+if __name__ == "__main__":
+    currentApp = QApplication(sys.argv)
+    currentForm = SteganographyConsumer()
+
+    currentForm.show()
+    currentApp.exec_()

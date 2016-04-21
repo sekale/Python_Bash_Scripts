@@ -8,6 +8,8 @@
 import glob
 import os
 
+def embedPayload(self, payload, override = False):
+
 def getDetails():
 	students_list = {}
 	ret_dict = {}

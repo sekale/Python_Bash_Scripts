@@ -1,21 +1,26 @@
 #! /usr/bin/envpython3.4
 #
 #$Author: ee364a09 $
-#$Date: 2016-02-11 16:36:32 -0500 (Thu, 11 Feb 2016) $
+#$Date: 2016-02-16 10:26:19 -0500 (Tue, 16 Feb 2016) $
 #$HeadURL: svn+ssh://ece364sv@ecegrid-thin1/home/ecegrid/a/ece364sv/svn/S16/students/ee364a09/Lab04/registrar.py $
-#$Revision: 88177 $
+#$Revision: 88210 $
 
 import glob
 import os
 
+
+
+
+
 def getDetails():
 	students_list = {}
+	ret_dict = {}
 	with open('files/students.txt') as value:
 		readfile = value.readlines()
 		for line in readfile[2:]:
 			line = line.split('|')
-			name = line[0]
-			student_id = line[1]
+			name = line[0].strip()
+			student_id = line[1].strip()
 			students_list[student_id] = name
 	value.close()
 
@@ -30,12 +35,16 @@ def getDetails():
 				student_id_1 = line[0].strip()
 				grade_temp = line[1].strip()
 				grade = int(grade_temp)
-				value_tuple(coursename,grade)
+				value_tuple = (coursename,grade)
+				#if(students_list.get(student_id_1) is not None):
 				student_name = students_list[student_id_1]
-				if name in ret_dict:
+				if student_name in ret_dict:
 					ret_dict[student_name].add(value_tuple)
+
 				else:
 					ret_dict[student_name] = {value_tuple}
+
+
 
 	return ret_dict
 
@@ -205,7 +214,67 @@ def getStudentList(classNumber):
 
 	return list_names
 
+def searchForName(studentName):
+	students_list = {}
+	ret_dict = {}
+	with open('files/students.txt') as value:
+		readfile = value.readlines()
+		for line in readfile[2:]:
+			line = line.split('|')
+			name = line[0].strip()
+			student_id = line[1].strip()
+			students_list[student_id] = name
+	value.close()
 
+	filenames = glob.glob('files/EECS*')
+
+	for file in filenames:
+		with open(file) as value:
+			readfile = value.readlines()
+			coursename = file[10:13]
+			for line in readfile[2:]:
+				line= line.split()
+				student_id_1 = line[0].strip()
+				grade_temp = line[1].strip()
+				grade = int(grade_temp)
+
+				if studentName == students_list[student_id_1]:
+					if coursename in ret_dict:
+						ret_dict[coursename].add(grade)
+					else:
+						ret_dict[coursename] = grade
+	return ret_dict
+
+def searchForID(studentId):
+	students_list = {}
+	ret_dict = {}
+	with open('files/students.txt') as value:
+		readfile = value.readlines()
+		for line in readfile[2:]:
+			line = line.split('|')
+			name = line[0].strip()
+			student_id = line[1].strip()
+			students_list[student_id] = name
+	value.close()
+
+	filenames = glob.glob('files/EECS*')
+
+	for file in filenames:
+		with open(file) as value:
+			readfile = value.readlines()
+			coursename = file[10:13]
+			for line in readfile[2:]:
+				line= line.split()
+				student_id_1 = line[0].strip()
+				grade_temp = line[1].strip()
+				grade = int(grade_temp)
+
+				if studentId == student_id_1:
+					if coursename in ret_dict:
+						ret_dict[coursename].add(grade)
+					else:
+						ret_dict[coursename] = grade
+	return ret_dict
 
 
 

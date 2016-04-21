@@ -1,0 +1,18 @@
+#! /bin/bash
+#
+#$Author: ee364a09 $
+#$Date: 2016-01-12 14:49:12 -0500 (Tue, 12 Jan 2016) $
+#$HeadURL: svn+ssh://ece364sv@ecegrid-thin1/home/ecegrid/a/ece364sv/svn/S16/students/ee364a09/Lab00/Script2 $
+#$Revision: 83969 $
+
+Parameter_value=$@
+loop_counter=$Parameter_value
+
+while (($loop_counter>=0))
+do
+echo "$loop_counter"
+let loop_counter=$loop_counter-1
+done
+
+exit 0
+

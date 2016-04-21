@@ -1,0 +1,21 @@
+#! /bin/bash
+#
+#$Author$
+#$Date$
+#$HeadURL$
+#$Revision$
+
+Parameter_value=$@
+loop_counter=$Parameter_value
+
+while (($loop_counter>=0))
+do
+if (($loop_counter%3==0))
+then
+echo "$loop_counter"
+fi
+let loop_counter=$loop_counter-1
+done
+
+exit 0
+
